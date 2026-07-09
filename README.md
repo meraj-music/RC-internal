@@ -1,9 +1,8 @@
 # Renewal Copilot
 
-A lightweight, client-side tool that recommends the best-fit Field Nation package
-(PAYG / Plus / Premier) for a buyer by combining two things:
+A lightweight, client-side tool that recommends the best-fit package.
 
-1. **Cost fit** — subscription fee vs. 12% PAYG at their projected spend, utilization, effective rate, break-even.
+1. **Cost fit** — subscription fee vs. PAYG fee at their projected spend, utilization, effective rate, break-even.
 2. **Feature fit** — a short needs checklist that sets the *minimum* package that even has what they need.
 
 The recommendation is the intersection: the cheapest tier that clears the feature floor.
@@ -38,7 +37,7 @@ On first load, click **"Continue in preview mode"** to skip sign-in while testin
 
 ## Google sign-in (restrict to Field Nation accounts)
 
-Same idea you used on Calendar Jenga.
+Same idea as on Calendar Jenga.
 
 1. Google Cloud Console → **APIs & Services → Credentials → Create OAuth client ID → Web application**.
 2. Under **Authorized JavaScript origins**, add your GitHub Pages origin
@@ -68,55 +67,6 @@ If you want real access control or to keep pricing private, host behind auth
 2. Add `config.js` to `.gitignore`.
 3. Put the real rates in your local `config.js` only, or inject them at deploy time.
 
-Never commit real fee tiers to a public repo.
-
----
-
-## Live price book from Google Sheets (recommended)
-
-Instead of putting rates in `config.js` at all, keep them in a Google Sheet shared
-within Field Nation. The app reads the sheet in the browser using the **signed-in
-user's own read-only token**, so nothing confidential is ever committed or served.
-
-The parser is **header-aware**: it reads row 1 and finds the columns by name, so
-column order doesn't matter as long as the headers are recognizable:
-
-- Package column: header contains `package`, `plan`, or `product`. Values are
-  normalized — anything containing "premier"/"plus"/"enterprise" maps to that package
-  (so `Premier Subscription` works).
-- Spend-limit column: header contains `spend limit`, `limit`, or `spend`.
-- Fee column: header contains `fee`, `rate`, or `%`.
-
-Example tab:
-
-| package | spend_limit | fee_pct |
-|---------|-------------|---------|
-| Premier | 50000       | 9.0     |
-| Premier | 100000      | 8.0     |
-| Plus    | 50000       | 7.0     |
-
-Setup (your sheet is already wired in `config.js`):
-
-1. `SHEET_ID` is set to your org-shared sheet; `SHEET_RANGE` is `A:Z` (single tab).
-2. Confirm row 1 has headers the parser can match (see above). If your sheet is the
-   grid-style price book with approval-level columns, tell me and I'll point the fee
-   detection at the right column.
-3. Share the sheet with the FN org or a Google Group (view access is enough).
-4. In **Google Cloud Console**, enable the **Google Sheets API** for your project.
-5. Sign in — the first time, Google asks the user to approve read-only Sheets access.
-
-If the headers can't be matched, the app logs a console warning and falls back to the
-sample rates (the "using sample rates" notice stays up), so it never breaks.
-
-How access works: only a signed-in FN user who already has view access to the sheet
-can load the rates, through their own permissions. If the fetch fails (or you're in
-preview mode), the app quietly falls back to the sample rates and shows a small notice.
-
-Tip: set the OAuth consent screen to **Internal** so only FN Workspace accounts can
-consent, and Google skips app verification. This requires the Cloud project to live
-under the FN Workspace org.
-
----
 
 ## Analytics included
 
@@ -175,24 +125,3 @@ git push -u origin main
 Then repo **Settings → Pages → Source: main / root**. Live at `https://YOURNAME.github.io/plan-advisor/`.
 
 ---
-
-## Two versions
-
-- **Portfolio (public):** keep the sample rates, generic labels, no real client ID. Fully functional, nothing confidential.
-- **Internal:** real rates in an uncommitted `config.js`, real client ID, ideally a private/access-controlled host.
-
----
-
-## What it does NOT do (on purpose)
-
-- It doesn't run the Salesforce downgrade/cancel/upsell/extension steps — those live in SF.
-  Renewal Copilot stops at the recommendation and talking points.
-- Overage above the subscription limit isn't modeled (the price book says "work with manager").
-  Confirm the real overage rule with your team before adding it.
-
----
-
-## Theme
-
-Orange + off-white, chosen for readability. Not the official FN brand orange — swap the
-`--orange*` CSS variables in `index.html` if you want an exact brand match.
